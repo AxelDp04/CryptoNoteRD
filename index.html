@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="CryptoNote — Plataforma P2P de seguimiento de inversiones en criptomonedas. Registra compras, ventas y analiza tus ganancias y perdidas en tiempo real.">
+  <title>CryptoNote — Tracker P2P Crypto</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1D6EF5">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CryptoNote">
+  <link rel="apple-touch-icon" href="logo.png">
+
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div class="app-layout">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <img src="logo.png" alt="CryptoNote Logo">
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-label">Principal</div>
+      <div class="nav-item active" data-page="dashboard">
+        <span class="nav-icon">📊</span>
+        Dashboard
+      </div>
+      <div class="nav-item" data-page="assets">
+        <span class="nav-icon">💼</span>
+        Mis Activos
+      </div>
+      <div class="nav-item" data-page="transactions">
+        <span class="nav-icon">📋</span>
+        Historial P2P
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="nav-item" id="btn-add-tx-2">
+        <span class="nav-icon">➕</span>
+        Nueva Operacion
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Bottom Navigation (Mobile only) ── -->
+  <nav class="bottom-nav" id="bottom-nav" aria-label="Navegacion principal">
+    <button class="bottom-nav-item active" data-page="dashboard" aria-label="Dashboard">
+      <span class="bottom-nav-icon">📊</span>
+      <span class="bottom-nav-label">Dashboard</span>
+    </button>
+    <button class="bottom-nav-item" data-page="assets" aria-label="Mis Activos">
+      <span class="bottom-nav-icon">💼</span>
+      <span class="bottom-nav-label">Activos</span>
+    </button>
+    <button class="bottom-nav-fab" id="btn-add-tx-mob" aria-label="Nueva Operacion">
+      <span style="font-size:22px;line-height:1">➕</span>
+    </button>
+    <button class="bottom-nav-item" data-page="transactions" aria-label="Historial">
+      <span class="bottom-nav-icon">📋</span>
+      <span class="bottom-nav-label">Historial</span>
+    </button>
+    <button class="bottom-nav-item" id="btn-open-auth-mob" aria-label="Mi Cuenta">
+      <span class="bottom-nav-icon">👤</span>
+      <span class="bottom-nav-label">Cuenta</span>
+    </button>
+  </nav>
+
+  <!-- ── Main Content ── -->
+  <div class="main-content">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 id="page-title">Dashboard</h1>
+        <p id="page-subtitle">Resumen de tu portafolio P2P</p>
+      </div>
+      <div class="topbar-right">
+        <div class="live-badge">
+          <div class="live-dot"></div>
+          Precios Live
+        </div>
+
+        <!-- Auth buttons / Profile chip -->
+        <div id="auth-logged-out" style="display:flex;align-items:center">
+          <button class="btn-secondary" id="btn-open-auth" style="padding:7px 14px;font-size:12px;font-weight:600">
+            🔑 Iniciar Sesion / Registrarse
+          </button>
+        </div>
+        <div id="auth-logged-in" style="display:none;align-items:center;gap:8px;background:var(--navy-800);border:1px solid var(--border);padding:4px 10px 4px 6px;border-radius:99px">
+          <div id="user-avatar-initials" style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--blue-500),var(--blue-electric));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff">US</div>
+          <span id="user-email-display" style="font-size:12px;font-weight:600;color:var(--text-primary);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">usuario</span>
+          <button id="btn-logout" title="Cerrar sesion" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;padding:2px 4px;line-height:1">🚪</button>
+        </div>
+
+        <button class="btn-primary" id="btn-add-tx">
+          ➕ Nueva Operacion
+        </button>
+      </div>
+    </header>
+
+    <!-- Pages -->
+    <main class="page-content">
+
+      <!-- ═══════════════════════════════════
+           PAGE: DASHBOARD
+      ═══════════════════════════════════ -->
+      <div class="page active" id="page-dashboard">
+
+        <!-- Stat Cards -->
+        <div class="stats-grid">
+          <div class="stat-card blue">
+            <div class="stat-icon blue">💵</div>
+            <div class="stat-label">Total Invertido</div>
+            <div class="stat-value" id="stat-invested">$0.00</div>
+            <div class="stat-change neutral" id="stat-invested-sub">Capital total comprometido</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-icon green">📈</div>
+            <div class="stat-label">Valor Actual</div>
+            <div class="stat-value" id="stat-current">$0.00</div>
+            <div class="stat-change neutral">Con precios en tiempo real</div>
+          </div>
+          <div class="stat-card green" data-type="pl">
+            <div class="stat-icon green">💹</div>
+            <div class="stat-label">Ganancia / Perdida Total</div>
+            <div class="stat-value" id="stat-pl">$0.00</div>
+            <div class="stat-change neutral" id="stat-pl-pct">—</div>
+          </div>
+          <div class="stat-card purple">
+            <div class="stat-icon purple">🏦</div>
+            <div class="stat-label">Activos en Portafolio</div>
+            <div class="stat-value" id="stat-assets">0</div>
+            <div class="stat-change neutral">Criptomonedas diferentes</div>
+          </div>
+        </div>
+
+        <!-- P&L Breakdown panel -->
+        <div class="pl-breakdown-card" id="pl-breakdown">
+          <!-- Rendered by JS -->
+        </div>
+
+        <!-- Charts Row -->
+        <div class="charts-grid">
+          <!-- Line Chart -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Rendimiento del Portafolio</div>
+                <div class="card-subtitle">Ultimos 30 dias estimados</div>
+              </div>
+            </div>
+            <div class="card-body" id="chart-content" style="display:none">
+              <div class="chart-container">
+                <canvas id="portfolioChart"></canvas>
+              </div>
+            </div>
+            <div id="chart-empty" class="empty-state">
+              <div class="empty-icon">📉</div>
+              <h3>Sin datos de grafico</h3>
+              <p>Registra tu primera inversion para ver el rendimiento</p>
+            </div>
+          </div>
+
+          <!-- Caja y Bancos -->
+          <div class="card">
+            <div class="card-header" style="display:flex; justify-content:space-between; align-items:flex-start">
+              <div>
+                <div class="card-title">🏦 Caja y Bancos (DOP)</div>
+                <div class="card-subtitle">Liquidez disponible por entidad</div>
+              </div>
+              <button id="btn-edit-banks" class="btn-secondary" style="font-size:11px; padding:4px 8px">Ajustar Inicial</button>
+            </div>
+            <div class="card-body" style="padding:0">
+              <div id="bank-balances-list" style="display:flex;flex-direction:column;">
+                <!-- Rendered by JS -->
+                <div style="padding:30px;text-align:center;color:var(--text-muted);font-size:12px">Cargando bancos...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="assets-table-wrap">
+          <div class="table-header">
+            <div class="table-title">Operaciones Recientes P2P</div>
+            <button class="btn-secondary" onclick="App.navigate('transactions')">Ver todas →</button>
+          </div>
+          <table class="tx-table">
+            <thead>
+              <tr>
+                <th>Tipo</th>
+                <th>Moneda</th>
+                <th>Cantidad</th>
+                <th>Tasa/Precio</th>
+                <th>Total + Comis</th>
+                <th>Banco</th>
+                <th>Fecha / Nota</th>
+                <th style="text-align:right">Accion</th>
+              </tr>
+            </thead>
+            <tbody id="recent-tx-body">
+              <tr><td colspan="8">
+                <div class="empty-state" style="padding:30px">
+                  <div class="empty-icon">📋</div>
+                  <h3>Sin operaciones</h3>
+                  <p>Registra tu primera operacion P2P para comenzar</p>
+                </div>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div><!-- /dashboard -->
+
+
+      <!-- ═══════════════════════════════════
+           PAGE: MIS ACTIVOS
+      ═══════════════════════════════════ -->
+      <div class="page" id="page-assets">
+        <div class="page-header">
+          <h2>💼 Mis Activos</h2>
+          <p>Todas tus posiciones abiertas — ve si estas en ganancia o perdida ahora mismo</p>
+        </div>
+
+        <div class="assets-table-wrap">
+          <table class="assets-table">
+            <thead>
+              <tr>
+                <th>Activo</th>
+                <th style="text-align:right">Precio Actual</th>
+                <th style="text-align:right">Cantidad</th>
+                <th style="text-align:right">Precio Promedio</th>
+                <th style="text-align:right">Valor Total</th>
+                <th style="text-align:right">Ganancia / Perdida</th>
+                <th style="text-align:right">Estado P2P</th>
+                <th style="text-align:center">Accion</th>
+              </tr>
+            </thead>
+            <tbody id="assets-tbody">
+              <tr><td colspan="8">
+                <div class="empty-state">
+                  <div class="empty-icon">💼</div>
+                  <h3>Portafolio vacio</h3>
+                  <p>Registra una compra para ver tus activos aqui</p>
+                </div>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div><!-- /assets -->
+
+
+      <!-- ═══════════════════════════════════
+           PAGE: TRANSACCIONES
+      ═══════════════════════════════════ -->
+      <div class="page" id="page-transactions">
+        <div class="page-header">
+          <h2>📋 Historial de Operaciones P2P</h2>
+          <p>Registro completo de todas tus compras y ventas — con P&L en tiempo real por operacion</p>
+        </div>
+
+        <div class="assets-table-wrap">
+          <div class="filter-bar">
+            <div class="search-input-wrap">
+              <span class="search-icon">🔍</span>
+              <input type="text" class="search-input" id="tx-search" placeholder="Buscar por moneda...">
+            </div>
+            <div class="tab-pills">
+              <button class="tab-pill active" data-filter="all">Todas</button>
+              <button class="tab-pill" data-filter="buy">Compras</button>
+              <button class="tab-pill" data-filter="sell">Ventas</button>
+            </div>
+          </div>
+
+          <table class="tx-table">
+            <thead>
+              <tr>
+                <th>Tipo</th>
+                <th>Moneda</th>
+                <th>Cantidad</th>
+                <th>Tasa/Precio</th>
+                <th>Total + Comis</th>
+                <th>Banco</th>
+                <th>Fecha / Nota</th>
+                <th style="text-align:right">Accion</th>
+              </tr>
+            </thead>
+            <tbody id="tx-tbody">
+              <tr><td colspan="8">
+                <div class="empty-state">
+                  <div class="empty-icon">📋</div>
+                  <h3>Sin transacciones</h3>
+                  <p>Registra tu primera operacion</p>
+                </div>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div><!-- /transactions -->
+
+    </main>
+  </div><!-- /main-content -->
+</div><!-- /app-layout -->
+
+
+<!-- ═══════════════════════════════════
+     MODAL: Nueva Operacion
+═══════════════════════════════════ -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📝 Nueva Operacion P2P</div>
+      <button class="modal-close" id="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="tx-form" autocomplete="off">
+
+        <!-- Buy / Sell toggle -->
+        <div class="type-selector">
+          <button type="button" class="type-btn active-buy" data-type="buy">▲ Compra</button>
+          <button type="button" class="type-btn" data-type="sell">▼ Venta</button>
+        </div>
+        <input type="hidden" id="tx-type-hidden" value="buy">
+
+        <!-- BUY mode: free coin search -->
+        <div id="coin-search-wrap" class="form-group" style="position:relative">
+          <label class="form-label">Criptomoneda</label>
+          <input type="text" class="form-input" id="coin-search" placeholder="Buscar: Bitcoin, Ethereum, SOL..." autocomplete="off">
+          <input type="hidden" id="coin-id-hidden">
+          <input type="hidden" id="coin-name-hidden">
+          <input type="hidden" id="coin-symbol-hidden">
+          <!-- Live price badge -->
+          <div id="live-price-badge" style="margin-top:6px;font-size:12px;color:var(--green-400);min-height:18px;font-weight:600"></div>
+          <!-- Dropdown -->
+          <div id="coin-dropdown" style="display:none;position:absolute;top:calc(100% + 28px);left:0;right:0;background:var(--navy-700);border:1px solid var(--border);border-radius:var(--radius-sm);z-index:10;max-height:240px;overflow-y:auto;box-shadow:var(--shadow-lg)"></div>
+        </div>
+
+        <!-- SELL mode: pick from your holdings -->
+        <div id="coin-sell-wrap" class="form-group" style="display:none">
+          <label class="form-label">¿Que moneda vas a vender?</label>
+          <select class="form-input form-select" id="sell-coin-select">
+            <option value="">Selecciona la moneda a vender...</option>
+          </select>
+          <div style="margin-top:6px;font-size:12px;min-height:18px;font-weight:600;line-height:1.5" id="live-price-badge-sell"></div>
+
+          <!-- Quick % quantity buttons -->
+          <div id="sell-quick-chips" style="display:none;align-items:center;gap:6px;margin-top:8px">
+            <span style="font-size:11px;color:var(--text-muted)">Vender:</span>
+            <button type="button" class="btn-qty-chip" data-pct="0.25">25%</button>
+            <button type="button" class="btn-qty-chip" data-pct="0.50">50%</button>
+            <button type="button" class="btn-qty-chip" data-pct="0.75">75%</button>
+            <button type="button" class="btn-qty-chip" data-pct="1.00">100% (Todo)</button>
+          </div>
+
+          <!-- Holding breakdown card -->
+          <div id="sell-holding-info" class="sell-info-box" style="display:none"></div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Cantidad (USDT/Crypto)</label>
+            <input type="number" class="form-input" id="tx-quantity" placeholder="0.00" step="any" min="0" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" id="price-label">Tasa/Precio (DOP)</label>
+            <input type="number" class="form-input" id="tx-price" placeholder="0.00" step="any" min="0" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Banco / Origen</label>
+            <select class="form-input form-select" id="tx-bank" required>
+              <option value="">Seleccionar banco...</option>
+              <option value="Banreservas">Banreservas</option>
+              <option value="Qik">Qik</option>
+              <option value="BHD">BHD</option>
+              <option value="Banco Popular">Banco Popular</option>
+              <option value="Santa Cruz">Santa Cruz</option>
+              <option value="Efectivo">Efectivo</option>
+              <option value="Binance Pay">Binance Pay</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Comisión Bancaria/Red (DOP)</label>
+            <input type="number" class="form-input" id="tx-commission" placeholder="0.00" step="any" min="0" value="0">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Fecha de la operacion</label>
+            <input type="date" class="form-input" id="tx-date" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nota P2P (opcional)</label>
+            <input type="text" class="form-input" id="tx-note" placeholder="Ej: compra a Carlos, Binance P2P...">
+          </div>
+        </div>
+
+        <!-- Total preview -->
+        <div id="total-preview" style="background:var(--navy-900);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;color:var(--text-muted);margin-bottom:4px">
+          Total estimado: <span id="total-amount" style="color:var(--text-primary);font-weight:700">$0.00</span>
+        </div>
+
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="modal-cancel">Cancelar</button>
+      <button class="btn-primary" id="submit-btn" form="tx-form" type="submit">Guardar Operacion</button>
+    </div>
+  </div>
+</div>
+
+<!-- Auth Overlay Premium -->
+<div class="auth-overlay" id="auth-modal-overlay">
+  <div class="auth-card">
+    <button class="auth-close" id="auth-modal-close">&#x2715;</button>
+    <div class="auth-brand">
+      <img src="logo.png" alt="CryptoNote" class="auth-logo">
+      <div class="auth-brand-name">CryptoNote</div>
+      <div class="auth-brand-tagline">Tu portafolio crypto, bajo control</div>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-auth-login" data-mode="login">Iniciar Sesion</button>
+      <button class="auth-tab" id="tab-auth-signup" data-mode="signup">Crear Cuenta</button>
+    </div>
+    <div id="auth-alert" class="auth-alert" style="display:none"></div>
+    <button type="button" class="btn-google" id="btn-google-signin">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908C16.612 14.01 17.64 11.81 17.64 9.2z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/><path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
+      Continuar con Google
+    </button>
+    <div class="auth-divider"><span>o continua con tu correo</span></div>
+    <form id="auth-form" autocomplete="on">
+      <div class="auth-field" id="group-auth-name" style="display:none">
+        <label class="auth-label">Nombre o Alias</label>
+        <input type="text" class="auth-input" id="auth-name" placeholder="Ej: Satoshi Trader" autocomplete="name">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Correo Electronico</label>
+        <input type="email" class="auth-input" id="auth-email" placeholder="tu@correo.com" required autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Contrasena</label>
+        <div style="position:relative">
+          <input type="password" class="auth-input" id="auth-password" placeholder="Minimo 6 caracteres" minlength="6" required autocomplete="current-password" style="padding-right:44px">
+          <button type="button" id="btn-toggle-pass" class="auth-eye-btn" title="Mostrar">&#128065;</button>
+        </div>
+        <div style="text-align:right;margin-top:6px" id="forgot-password-wrap">
+          <button type="button" id="btn-forgot-password" style="background:none;border:none;color:var(--text-muted);font-size:11px;cursor:pointer;text-decoration:underline;padding:0" tabindex="-1">¿Olvidaste tu contrasena?</button>
+        </div>
+      </div>
+      <button type="submit" class="btn-auth-submit" id="btn-auth-submit">Iniciar Sesion</button>
+    </form>
+    <div class="auth-switch">
+      <span id="auth-switch-text">No tienes cuenta?</span>
+      <button type="button" id="btn-auth-switch" class="auth-switch-btn">Registrate gratis</button>
+    </div>
+    <div id="auth-sync-wrap" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);text-align:center">
+      <button type="button" id="btn-sync-local" style="background:none;border:none;color:var(--blue-400);font-size:12px;cursor:pointer;text-decoration:underline">
+        Subir mis operaciones locales a mi cuenta
+      </button>
+    </div>
+    <div class="auth-security">
+      <span>&#128274;</span> Datos cifrados en Supabase PostgreSQL
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Ajustar Bancos -->
+<div class="modal-overlay" id="bank-modal-overlay">
+  <div class="modal" style="max-width:350px">
+    <div class="modal-header">
+      <div class="modal-title">🏦 Ajustar Saldo Inicial</div>
+      <button class="modal-close" onclick="document.getElementById('bank-modal-overlay').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Ingresa con cuanto DOP empezaste en cada banco para que el balance cuadre perfectamente.</div>
+      <div id="bank-modal-body" style="display:flex;flex-direction:column;gap:10px;">
+        <!-- rendered by JS -->
+      </div>
+    </div>
+    <div style="padding:16px; border-top:1px solid var(--border)">
+      <button class="btn-primary" style="width:100%" id="btn-save-banks">Guardar Saldos</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Reset Password -->
+<div class="modal-overlay" id="reset-modal-overlay">
+  <div class="modal" style="max-width:350px">
+    <div class="modal-header">
+      <div class="modal-title">🔐 Nueva Contrasena</div>
+    </div>
+    <div class="modal-body">
+      <form id="reset-password-form">
+        <div class="auth-field">
+          <label class="auth-label">Escribe tu nueva contrasena</label>
+          <input type="password" class="auth-input" id="reset-new-password" placeholder="Minimo 6 caracteres" minlength="6" required>
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%" id="btn-save-new-password">Guardar Contrasena</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- Scripts -->
+<script src="js/supabase.js?v=20261007_2"></script>
+<script src="js/storage.js?v=20261007_2"></script>
+<script src="js/api.js?v=20261007_2"></script>
+<script src="js/charts.js?v=20261007_2"></script>
+<script src="js/app.js?v=20261007_2"></script>
+
+<!-- Service Worker Registration -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('[PWA] Service Worker registered:', reg.scope))
+        .catch(err => console.warn('[PWA] SW registration failed:', err));
+    });
+  }
+</script>
+
+</body>
+</html>
