@@ -109,8 +109,13 @@ const App = {
       if (tx.type === 'sell') totalSoldValue += (tx.quantity * tx.price) - (tx.commission || 0);
     });
 
+    // Tasa de cambio DOP/USD implicita basada en el costo promedio de USDT, o 60 por defecto
+    const usdtHolding = holdings.find(h => h.coinId === 'tether');
+    const dopRate = usdtHolding ? usdtHolding.avgBuyPrice : 60.00;
+
     holdings.forEach(h => {
-      const p = this.prices[h.coinId]?.usd || h.avgBuyPrice;
+      const livePriceUSD = this.prices[h.coinId]?.usd;
+      const p = livePriceUSD ? (livePriceUSD * dopRate) : h.avgBuyPrice;
       currentValue += h.quantity * p;
     });
 

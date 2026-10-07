@@ -80,7 +80,7 @@ const API = {
     if (compact && Math.abs(val) >= 1000) {
       return 'RD$' + Intl.NumberFormat('es-DO', { notation: 'compact', maximumFractionDigits: 2 }).format(val);
     }
-    const fmt = new Intl.NumberFormat('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: val < 1 ? 6 : 2 }).format(val);
+    const fmt = new Intl.NumberFormat('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: Math.abs(val) < 1 ? 6 : 2 }).format(val);
     return 'RD$' + fmt;
   },
 
