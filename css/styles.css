@@ -85,7 +85,7 @@ body{
 .topbar{height:var(--topbar-height);background:rgba(10,15,30,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:50}
 .topbar-left h1{font-size:18px;font-weight:700;color:var(--text-primary)}
 .topbar-left p{font-size:12px;color:var(--text-muted);margin-top:1px}
-.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-right{display:flex;align-items:center;gap:12px;flex-shrink:0;min-width:0;overflow:hidden}
 
 .btn-primary{display:flex;align-items:center;gap:8px;padding:9px 18px;background:linear-gradient(135deg,var(--blue-600),var(--blue-electric));color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;transition:var(--transition);box-shadow:var(--shadow-blue);white-space:nowrap}
 .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 30px rgba(29,110,245,.4);background:linear-gradient(135deg,var(--blue-500),var(--blue-400))}
@@ -230,7 +230,7 @@ body{
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
 .filter-bar{display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap}
-.search-input-wrap{position:relative;flex:1;min-width:180px}
+.search-input-wrap{position:relative;flex:1;min-width:0;width:100%}
 .search-input-wrap .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:14px;pointer-events:none}
 .search-input{width:100%;background:var(--navy-900);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px 8px 32px;font-size:13px;font-family:'Inter',sans-serif;color:var(--text-primary);outline:none;transition:var(--transition)}
 .search-input:focus{border-color:var(--blue-500);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
@@ -248,7 +248,7 @@ body{
 
 /* ── P&L Breakdown Card ── */
 .pl-breakdown-card{background:var(--navy-800);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 24px;display:flex;align-items:center;gap:32px;margin-bottom:24px;flex-wrap:wrap}
-.pl-breakdown-item{display:flex;align-items:center;justify-content:space-between;gap:32px;flex:1;min-width:200px}
+.pl-breakdown-item{display:flex;align-items:center;justify-content:space-between;gap:32px;flex:1;min-width:0}
 .pl-breakdown-label{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.06em}
 .pl-breakdown-val{font-size:20px;font-weight:800;letter-spacing:-.02em}
 .pl-breakdown-sep{width:1px;height:40px;background:var(--border);flex-shrink:0}
@@ -267,7 +267,7 @@ body{
 .sell-info-val{font-weight:600;color:var(--text-primary)}
 
 
-@media(max-width:1100px){.stats-grid{grid-template-columns:repeat(2,1fr)}.charts-grid{grid-template-columns:1fr}}
+@media(max-width:1100px){.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.charts-grid{grid-template-columns:minmax(0,1fr)}}
 
 /* ══════════════════════════════════════════
    BOTTOM NAVIGATION BAR (Mobile)
@@ -384,9 +384,11 @@ body{
     height: 56px;
     gap: 12px;
   }
-  .topbar-left { min-width: 0; flex: 1; }
+  .topbar-left { min-width: 0; flex: 1; overflow: hidden; }
   .topbar-left h1 { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .topbar-left p  { display: none; }
+  .topbar-right   { flex-shrink: 0; gap: 8px; }
+  #btn-open-auth  { font-size: 11px; padding: 6px 10px; white-space: nowrap; }
 
   /* Hide desktop "Nueva Operacion" btn in topbar on mobile */
   #btn-add-tx { display: none; }
