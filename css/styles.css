@@ -45,6 +45,7 @@
 }
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+img,video{max-width:100%;height:auto;display:block}
 html, body {
   width: 100%;
   max-width: 100vw;
@@ -79,7 +80,7 @@ body{
 .nav-item .nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0}
 .sidebar-footer{padding:16px 12px;border-top:1px solid var(--border)}
 
-.main-content{margin-left:var(--sidebar-width);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.main-content{margin-left:var(--sidebar-width);flex:1;display:flex;flex-direction:column;min-height:100vh;min-width:0;max-width:100%}
 
 .topbar{height:var(--topbar-height);background:rgba(10,15,30,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:50}
 .topbar-left h1{font-size:18px;font-weight:700;color:var(--text-primary)}
@@ -97,11 +98,11 @@ body{
 .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green-400);animation:pulse-green 2s infinite}
 @keyframes pulse-green{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
 
-.page-content{padding:28px;flex:1}
+.page-content{padding:28px;flex:1;min-width:0;max-width:100%}
 .page{display:none}
 .page.active{display:block}
 
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:24px}
 .stat-card{background:var(--navy-800);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;position:relative;overflow:hidden;transition:var(--transition)}
 .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent,var(--blue-500)),transparent);opacity:0;transition:var(--transition)}
 .stat-card:hover{border-color:rgba(255,255,255,.1);transform:translateY(-2px)}
@@ -118,19 +119,19 @@ body{
 .stat-icon.purple{background:rgba(139,92,246,.15)}
 
 .stat-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px}
-.stat-value{font-size:26px;font-weight:800;color:var(--text-primary);line-height:1;margin-bottom:8px;letter-spacing:-.02em}
+.stat-value{font-size:26px;font-weight:800;color:var(--text-primary);line-height:1;margin-bottom:8px;letter-spacing:-.02em;word-break:break-word}
 .stat-change{font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px}
 .stat-change.up{color:var(--green-400)}
 .stat-change.down{color:var(--red-400)}
 .stat-change.neutral{color:var(--text-muted)}
 
-.charts-grid{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:24px}
+.charts-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px;margin-bottom:24px}
 
 .card{background:var(--navy-800);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
 .card-header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--border)}
 .card-title{font-size:14px;font-weight:700;color:var(--text-primary)}
 .card-subtitle{font-size:11px;color:var(--text-muted);margin-top:2px}
-.card-body{padding:20px}
+.card-body{padding:20px;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .chart-container{position:relative;height:240px}
 .pie-container{position:relative;height:200px;display:flex;align-items:center;justify-content:center}
 
@@ -381,8 +382,10 @@ body{
   .topbar {
     padding: 0 16px;
     height: 56px;
+    gap: 12px;
   }
-  .topbar-left h1 { font-size: 15px; }
+  .topbar-left { min-width: 0; flex: 1; }
+  .topbar-left h1 { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .topbar-left p  { display: none; }
 
   /* Hide desktop "Nueva Operacion" btn in topbar on mobile */
@@ -399,13 +402,13 @@ body{
   .page-content { padding: 16px 12px; }
 
   /* Stats grid: 2 col → stacked 2 col */
-  .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .stats-grid { grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 10px; margin-bottom: 16px; }
   .stat-card  { padding: 14px; }
   .stat-value { font-size: 20px; }
   .stat-icon  { width: 32px; height: 32px; font-size: 14px; margin-bottom: 10px; }
 
   /* Charts: single column */
-  .charts-grid { grid-template-columns: 1fr; gap: 12px; margin-bottom: 16px; }
+  .charts-grid { grid-template-columns: minmax(0,1fr); gap: 12px; margin-bottom: 16px; }
   .chart-container { height: 200px; }
   .pie-container   { height: 160px; }
 
@@ -417,7 +420,7 @@ body{
     margin-bottom: 16px;
   }
   .pl-breakdown-sep { width: 100%; height: 1px; }
-  .pl-breakdown-item { gap: 16px; min-width: unset; }
+  .pl-breakdown-item { gap: 16px; min-width: 0; width: 100%; }
   .pl-breakdown-val  { font-size: 16px; }
 
   /* Tables: horizontal scroll wrapper */
@@ -428,11 +431,12 @@ body{
   .tx-table td        { padding: 10px 12px; font-size: 12px; white-space: nowrap; }
 
   /* Filter bar */
-  .filter-bar { padding: 10px 12px; gap: 8px; }
-  .tab-pills  { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
+  .filter-bar { padding: 12px 14px; gap: 12px; flex-direction: column; align-items: stretch; }
+  .search-input-wrap { width: 100%; min-width: 0; }
+  .tab-pills  { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; justify-content: flex-start; padding-bottom: 4px; }
 
   /* Form rows: single column */
-  .form-row { grid-template-columns: 1fr; }
+  .form-row { grid-template-columns: minmax(0,1fr); }
 
   /* Modals: full-screen on mobile */
   .modal-overlay { padding: 0; align-items: flex-end; }
@@ -471,7 +475,7 @@ body{
   .card-header{ padding: 14px 16px; }
 
   /* Bank balances: grid 2 col */
-  .bank-grid { grid-template-columns: 1fr 1fr !important; }
+  .bank-grid { grid-template-columns: minmax(0,1fr) minmax(0,1fr) !important; }
 
   /* Toast: full width at bottom */
   .toast-container {
@@ -486,7 +490,7 @@ body{
    RESPONSIVE — Small phones (480px)
 ══════════════════════════════════════════ */
 @media (max-width: 480px) {
-  .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stats-grid { grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 8px; }
   .stat-value { font-size: 18px; }
   .stat-label { font-size: 10px; }
   .page-content { padding: 12px 10px; }
